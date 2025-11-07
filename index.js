@@ -81,6 +81,17 @@ async function run() {
       });
     });
 
+    // latest 6 data
+    app.get("/latest-models", async (req, res) => {
+      const result = await modelCollection
+        .find()
+        .sort({ created_at: -1 })
+        .limit(6)
+        .toArray();
+
+      res.send(result);
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
