@@ -54,6 +54,7 @@ async function run() {
 
     const db = client.db("model-db");
     const modelCollection = db.collection("models");
+    const downloadsCollection = db.collection("downloads");
 
     // find
     app.get("/models", async (req, res) => {
@@ -123,6 +124,20 @@ async function run() {
       const email = req.query.email;
       const result = await modelCollection
         .find({ created_by: email })
+        .toArray();
+      res.send(result);
+    });
+
+    app.post("/downloads", async (req, res) => {
+      const data = req.body;
+      const result = await downloadsCollection.insertOne(data);
+      res.send(result);
+    });
+
+    app.get("/my-downloads", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      const result = await downloadsCollection
+        .find({ downloaded_by: email })
         .toArray();
       res.send(result);
     });
