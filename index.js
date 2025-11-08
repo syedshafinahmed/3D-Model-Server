@@ -50,7 +50,7 @@ const verifyToken = async (req, res, next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const db = client.db("model-db");
     const modelCollection = db.collection("models");
@@ -86,7 +86,7 @@ async function run() {
     app.put("/models/:id", async (req, res) => {
       const { id } = req.params;
       const data = req.body;
-      const ObjectId = new ObjectId(id);
+      // const objectId = new ObjectId(id);
       const filter = { _id: new ObjectId(id) };
       const update = {
         $set: data,
@@ -177,7 +177,7 @@ async function run() {
       res.send(result);
     });
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
