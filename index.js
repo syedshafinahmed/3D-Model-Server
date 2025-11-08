@@ -128,10 +128,37 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/downloads", async (req, res) => {
+    // app.post("/downloads/:id", async (req, res) => {
+    //   const data = req.body;
+    //   const id = req.params.id;
+    //   const result = await downloadsCollection.insertOne(data);
+    //   const filter = { _id: new ObjectId(id) };
+    //   const update = {
+    //     $inc: {
+    //       downloads: 1,
+    //     },
+    //   };
+    //   const downloadCounted = await modelCollection.updateOne(filter, update);
+    //   res.send(result, downloadCounted);
+    // });
+
+    // POST a download
+    app.post("/downloads/:id", async (req, res) => {
       const data = req.body;
-      const result = await downloadsCollection.insertOne(data);
-      res.send(result);
+      const modelId = req.params.id;
+
+      try {
+        const result = await downloadsCollection.insertOne(data);
+        const filter = { _id: new ObjectId(modelId) };
+        const updated = await modelCollection.updateOne(filter, {
+          $inc: { downloads: 1 },
+        });
+
+        res.send({ success: true, download: result, updated });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ success: false, error: "Server Error" });
+      }
     });
 
     app.get("/my-downloads", verifyToken, async (req, res) => {
