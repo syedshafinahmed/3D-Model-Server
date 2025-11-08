@@ -1,3 +1,4 @@
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const app = express();
@@ -8,7 +9,14 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./serviceKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@zyra.l75hwjs.mongodb.net/?appName=Zyra`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -19,6 +27,25 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+const verifyToken = async (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.send.status(401).send({
+      message: "Unauthorized Access. Token not found!",
+    });
+  }
+  const token = authorization.split(" ")[1];
+  try {
+    await admin.auth().verifyIdToken(token);
+    next();
+  } catch (error) {
+    res.status(401).send({
+      message: "Unauthorized Access",
+    });
+  }
+  // console.log();
+};
 
 async function run() {
   try {
@@ -34,7 +61,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/models/:id", async (req, res) => {
+    app.get("/models/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await modelCollection.findOne({ _id: new ObjectId(id) });
       res.send({
@@ -86,7 +113,7 @@ async function run() {
       const result = await modelCollection
         .find()
         .sort({ created_at: -1 })
-        .limit(6)
+        .limit(8)
         .toArray();
 
       res.send(result);
