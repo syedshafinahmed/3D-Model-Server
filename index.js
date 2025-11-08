@@ -31,7 +31,7 @@ const client = new MongoClient(uri, {
 const verifyToken = async (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
-    return res.send.status(401).send({
+    return res.status(401).send({
       message: "Unauthorized Access. Token not found!",
     });
   }
@@ -85,7 +85,7 @@ async function run() {
     app.put("/models/:id", async (req, res) => {
       const { id } = req.params;
       const data = req.body;
-      // const ObjectId = new ObjectId(id);
+      const ObjectId = new ObjectId(id);
       const filter = { _id: new ObjectId(id) };
       const update = {
         $set: data,
@@ -116,6 +116,14 @@ async function run() {
         .limit(8)
         .toArray();
 
+      res.send(result);
+    });
+
+    app.get("/my-models", verifyToken, async (req, res) => {
+      const email = req.query.email;
+      const result = await modelCollection
+        .find({ created_by: email })
+        .toArray();
       res.send(result);
     });
 
